@@ -1,3 +1,22 @@
+const userLocalStorage = {
+    name: 'DATA_GAME',
+    set(object) {
+        localStorage.setItem(this.name, JSON.stringify(object));
+    },
+    get() {
+        const startObject = {
+            history: [
+                {
+                    squares: Array(9).fill(null),
+                },
+            ],
+            xIsNext: true,
+            step: 0,
+        };
+        return JSON.parse(localStorage.getItem(this.name)) || startObject;
+    },
+};
+
 function Square(props) {
     return (
         <button className="square" onClick={props.onClick}>
@@ -35,42 +54,32 @@ function Board(props) {
 class Game extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            history: [
-                {
-                    squares: Array(9).fill(null),
-                },
-            ],
-            xIsNext: true,
-            step: 0,
-        };
+        this.state = userLocalStorage.get();
     }
 
     handleClick(i) {
         const history = this.state.history.slice(0, this.state.step + 1);
-        console.log(history);
         const current = history[history.length - 1];
-        const squares = current.squares;
+        const squares = current.squares.slice();
         if (findTheWiiner(squares) || squares[i]) {
             return;
         }
-
         const xIsNext = this.state.xIsNext;
         squares[i] = this.state.xIsNext ? 'X' : 'O';
         this.setState({ history: history.concat([{ squares }]), xIsNext: !xIsNext, step: history.length });
+        userLocalStorage.set(this.state);
     }
 
     jumTo(step) {
         this.setState({ step, xIsNext: step % 2 === 0 });
+        userLocalStorage.set(this.state);
     }
 
     render() {
+        userLocalStorage.set(this.state);
         const xIsNext = this.state.xIsNext;
-
         const history = this.state.history;
         const current = history[this.state.step];
-        console.log(history);
-        console.log(this.state.step);
         const squares = current.squares;
 
         const winner = findTheWiiner(squares);
